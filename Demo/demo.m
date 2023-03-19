@@ -88,7 +88,7 @@ disp(obj2_bp.isdiff)
 
 % Please look forward to our paper for the specific applications and
 % physical implications of this method:
-% [1] Bo Yang, Haoran Meng, Ning Gu, Xin Liu, Hao Zhang, Shuye Huang,
-%     Yehuda Ben-Zion, and Xiaofei Chen. 2022. Evaluating diffuse
-%     wavefield and its applications in waveform anatomy and seismic
-%     imaging. In preparation.
+%   [1] Bo Yang, Haoran Meng, Ning Gu, Xin Liu, Yehuda Ben-Zion, and
+%       Xiaofei Chen. 2023. Quantitative Evaluation of Diffuse Wavefield:
+%       An Efficient Frequency Domain Methodology and Its Applications in
+%       Seismic Imaging. In preparation.
