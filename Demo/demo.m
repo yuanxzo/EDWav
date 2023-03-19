@@ -85,7 +85,7 @@ disp(obj2_bp.isdiff)
 %% At the end of demonstration
 % More optional parameters are not introduced one by one, their meanings
 % can be found in the description of optional parameters of 'edw.edws'. 
-
+%
 % Please look forward to our paper for the specific applications and
 % physical implications of this method:
 %   [1] Bo Yang, Haoran Meng, Ning Gu, Xin Liu, Yehuda Ben-Zion, and
