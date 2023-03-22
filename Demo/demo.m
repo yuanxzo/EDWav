@@ -53,7 +53,7 @@ obj2_bp=obj2(1).bandpass(band);
 obj2_bp=obj2_bp.evaluation('FB',band);
 figure;obj2_bp.result;
 
-obj2_seg=obj2(1).segment('SE',[1 100000],'NS',10); % segment the selected data into multiple objects
+obj2_seg=obj2(1).segment(10,'SE',[1 100000]); % segment the selected data into multiple objects
 
 obj2_cut=obj2(1).cut('SE',[1 100000]);  % keep selected data
 
