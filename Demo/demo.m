@@ -39,9 +39,7 @@ obj1=obj1.evaluation;              % perform evaluation
 obj1.result;
 
 % The second way to create an edw object is by edw.read_sac or edw.read_mseed
-% obj2=edw.read_mseed({'ANMO.mseed','COLA.mseed'},'npts',3600*40,'lat',[34.946 64.874],'lon',[-106.457 -147.862]); % Here, we additionally add a restriction on the length of the read data and assign each data its station position
-obj2=edw.read_mseed({'R0101','R3010'},'npts',60*500,'lat',[33.535198 33.538715],'lon',[-116.5923 -116.5914]); % Here, we additionally add a restriction on the length of the read data and assign each data its station position
-
+obj2=edw.read_mseed({'ANMO.mseed','COLA.mseed'},'npts',600*40,'lat',[34.946 64.874],'lon',[-106.457 -147.862]); % Here, we additionally add a restriction on the length of the read data and assign each data its station position
 for i=1:length(obj2)  % since two files are read in, you can use the for loop to evaluate all 'obj'
     obj2(i)=obj2(i).evaluation;   % perform evaluation
     obj2(i).result;
@@ -55,14 +53,14 @@ t    = obj1.time;  % calculate time, frequency series, and spectrum of an 'obj'
 f    = obj1.freq;
 spec = obj1.fft;
 
-band=[10 100];    % band pass filtering before evaluation
+band=[1 10];    % band pass filtering before evaluation
 obj2_bp=obj2(1).bandpass(band);
 obj2_bp=obj2_bp.evaluation('FB',band);
 obj2_bp.result;
 
-obj2_seg=obj2(1).segment(3,'SE',[1 60*500]); % segment the selected data into multiple objects
+obj2_seg=obj2(1).segment(10,'SE',[1 600*40]); % segment the selected data into multiple objects
 
-obj2_cut=obj2(1).cut('SE',[1 60*500]);  % keep selected data
+obj2_cut=obj2(1).cut('SE',[1 600*40]);  % keep selected data
 
 %% How to select the appropriate scale factor of the scale dependent RMS?
 % First, switch on the 'CP' and perform evaluation, and an image will appear as a result
@@ -74,11 +72,11 @@ temp=obj2_bp.evaluation('FB',band,'CP','YES');
 % As you can see from the figure, the value corresponding to this obj is
 % roughly 0.06. In our experience, the value of 'SF' is basically in the
 % range of [0.03,0.07], so the default value of 'SF' we set in the program
-% is 0.06. Generally, this default value is feasible, and users do not
+% is 0.07. Generally, this default value is feasible, and users do not
 % have to perform these steps every time.
 
 % Finally, modify the value of 'SF', turn off 'CP', and re-evaluate.
-SF=0.06;
+SF=0.07;
 new=obj2_bp.evaluation('FB',band,'SF',SF); 
 new.result;
 % Whether it is from the images of conditions A, B and C or from the
