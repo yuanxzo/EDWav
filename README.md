@@ -2,4 +2,4 @@
 Advanced evaluation method for diffuse waveform
 
 # **Reference**
-> Bo Yang, Haoran Meng, Ning Gu, Xin Liu, Yehuda Ben-Zion, and Xiaofei Chen. 2023. Quantitative Evaluation of Diffuse Wavefield: An Efficient Frequency Domain Methodology and Its Applications in Seismic Imaging. In preparation.
+> Bo Yang, Haoran Meng, Ning Gu, Xin Liu, Xiaofei Chen, and Yehuda Ben-Zion. 2023. A Frequency Domain Methodology for Quantitative Evaluation of Diffuse Wavefield with Applications to Seismic Imaging. In preparation.
