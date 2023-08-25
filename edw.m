@@ -511,7 +511,7 @@ methods
             warning('No input frequency band')
             return
         else
-            [pB,pA]=butter(3,band/(Fs/2));
+            [pB,pA]=butter(2,band/(Fs/2));
             new_obj.data=filtfilt(pB,pA,obj.data(se(1):se(2),1));
         end
     end
