@@ -72,7 +72,7 @@ temp=obj2_bp.evaluation('FB',band,'CP','YES');
 % As you can see from the figure, the value corresponding to this obj is
 % roughly 0.06. In our experience, the value of 'SF' is basically in the
 % range of [0.03,0.07], so the default value of 'SF' we set in the program
-% is 0.07. Generally, this default value is feasible, and users do not
+% is 0.05. Generally, this default value is feasible, and users do not
 % have to perform these steps every time.
 
 % Finally, modify the value of 'SF', turn off 'CP', and re-evaluate.
@@ -84,16 +84,16 @@ new.result;
 % be found that 'obj2_bp' satisfies the diffuse field characteristics (We
 % declare that the object with PA, PB and PC all less than 0.05 conform to
 % the diffuse field characteristics. 0.05 is the default value. Different
-% values can be set for different data.), so the value of 'obj2_bp.isdiff'
+% values can be set for different data.), so the value of 'new.isdiff'
 % is 1.
-disp(obj2_bp.isdiff)
+disp(new.isdiff)
 %% At the end of demonstration
 % More optional parameters are not introduced one by one, their meanings
 % can be found in the description of optional parameters of 'edw.edws'. 
 %
 % Please look forward to our paper for the specific applications and
 % physical implications of this method:
-%   [1] Bo Yang, Haoran Meng, Ning Gu, Xin Liu, Yehuda Ben-Zion, and
-%       Xiaofei Chen. 2023. A Frequency Domain Methodology for Quantitative
+%   [1] Bo Yang, Haoran Meng, Ning Gu, Xin Liu, Xiaofei Chen, and Yehuda
+%       Ben-Zion. 2023. A Frequency Domain Methodology for Quantitative
 %       Evaluation of Diffuse Wavefield with Applications to Seismic
 %       Imaging. In preparation.
