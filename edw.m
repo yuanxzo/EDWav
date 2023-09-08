@@ -327,7 +327,7 @@ methods (Static)
 
         % Extract input parameters
         p = inputParser;
-        addOptional(p,'Fs',ones(N,1))
+        addOptional(p,'Fs',1)
         addOptional(p,'name','Unnamed')
         addOptional(p,'lat',[])
         addOptional(p,'lon',[])
@@ -511,7 +511,13 @@ methods
             warning('No input frequency band')
             return
         else
-            [pB,pA]=butter(2,band/(Fs/2));
+            if band(1)==0        % lowpass,  e.g., band=[0 Fs/2];
+                [pB,pA]=butter(2,band(2)/(Fs/2),"low");
+            elseif band(2)==Inf  % highpass, e.g., band=[Fs/2 Inf];
+                [pB,pA]=butter(2,band(1)/(Fs/2),"high");
+            else                 % bandpass, e.g., band=[Fs/4, Fs/2];
+                [pB,pA]=butter(2,band/(Fs/2),'bandpass');
+            end
             new_obj.data=filtfilt(pB,pA,obj.data(se(1):se(2),1));
         end
     end
