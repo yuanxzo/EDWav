@@ -65,7 +65,7 @@
 %       [1] Bo Yang, Haoran Meng, Ning Gu, Xin Liu, Xiaofei Chen, and
 %           Yehuda Ben-Zion. 2023. A Frequency Domain Methodology for
 %           Quantitative Evaluation of Diffuse Wavefield with Applications
-%           to Seismic Imaging. Preprint.
+%           to Seismic Imaging. In preparation.
 % =========================================================================
 
 classdef edw
@@ -321,31 +321,44 @@ methods (Static)
         %        or obj=edw.build_obj(data,'Fs',500)
         %        or obj=edw.build_obj(data,'Fs',500,'name',{'R1'})
 
-        obj=edw;if isempty(data);return;end
+        if isempty(data);return;end
         [M,N]=size(data);
-        if N>1;error('data must be a column vector!');end
 
         % Extract input parameters
+        Name(1:N,1)={'Unnamed'};
+        Lat(1:N,1)={[]};
+        Lon(1:N,1)={[]};
         p = inputParser;
         addOptional(p,'Fs',1)
-        addOptional(p,'name','Unnamed')
-        addOptional(p,'lat',[])
-        addOptional(p,'lon',[])
+        addOptional(p,'name',Name(1:N,1))
+        addOptional(p,'lat',Lat)
+        addOptional(p,'lon',Lon)
         p.parse(varargin{:});
-        
-        Fs=p.Results.Fs; 
-        lon=p.Results.lon;
-        lat=p.Results.lat;
 
-        % Create an object for the data and write the parameters to this
-        % object.
-        obj.station.name = p.Results.name;
-        obj.station.Fs   = Fs;
-        obj.station.lat  = lat;
-        obj.station.lon  = lon;
-        obj.station.dt   = 1/obj.station.Fs;
-        obj.station.npts = M;
-        obj.data(1:M,1)  = data(:,1);
+        % Create an object for each column of data and write the parameters
+        % to that object.
+        obj(1:N)=edw;
+        for i=1:N
+            obj(i).data(1:M,1)  = data(:,i);
+            if iscell(p.Results.name(i))
+                obj(i).station.name = p.Results.name{i};
+            else
+                obj(i).station.name = p.Results.name(i);
+            end
+            obj(i).station.Fs   = p.Results.Fs;
+            obj(i).station.dt   = 1/obj(i).station.Fs;
+            obj(i).station.npts = M;
+            if iscell(p.Results.lat(i))
+                obj(i).station.lat  = p.Results.lat{i};
+            else
+                obj(i).station.lat  = p.Results.lat(i);
+            end
+            if iscell(p.Results.lon(i))
+                obj(i).station.lon  = p.Results.lon{i};
+            else
+                obj(i).station.lon  = p.Results.lon(i);
+            end
+        end
     end
 end
 
