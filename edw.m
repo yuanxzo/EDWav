@@ -439,10 +439,7 @@ methods
         for i=1:num_of_win
             wvfm_seg(1:len_of_taper,i) = wvfm(idx(i):idx(i)+len_of_taper-1);
         end
-	num_of_taper = 1;
-        % [tapers,weight] = sinusoidal_tapers(len_of_taper,num_of_taper);
- 	tapers = tukeywin(len_of_taper,0.05);
-  	weight = 1;
+	[tapers,weight] = sinusoidal_tapers(len_of_taper,num_of_taper);
         fft_all  = zeros(nfid,num_of_win,num_of_taper);
         for k=1:num_of_taper
             tmp = fft((wvfm_seg.*tapers(:,k)));
@@ -880,6 +877,15 @@ function [proxy,SF]=calculate_proxy(A,B,C,SF,CP,PB)
 	end
 end
 
+% Sinusoidal tapers
+function [tapers,lambda] = sinusoidal_tapers(len_of_win,num_of_taper)
+    points=1:len_of_win;
+    tapers=zeros(len_of_win,num_of_taper);
+    for i=1:num_of_taper
+        tapers(:,i)=sqrt(2/(len_of_win+1)).*sin((pi*i.*points)./(len_of_win+1));
+    end
+    lambda(1:num_of_taper)=1/num_of_taper;
+end
 
 % Obtain frequency information related to conditions A, B and C
 function [frq,fid,nfid]=obtain_freq(Fs,len_of_taper,band)
