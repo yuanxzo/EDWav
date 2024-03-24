@@ -22,12 +22,11 @@ class EDWav():
     Procedure for evaluating the diffuseness proxy of seismic waveform
 
     A simple example:
+        import obspy
         st=obspy.read()
-        wv=st[0].data
-        FS=st[0].stats.sampling_rate
-
-        obj=EDWav.evaluate(wv,FS) # evaluation
-        obj.plot()                # show result
+        
+        obj=EDWav.evaluate(st[0].data,st[0].stats.sampling_rate) # evaluation
+        obj.plot() # show result
 
     Tip: The program uses 'numba@jit' speed up.
          There may be many warnings when calling the program for the first time and it runs slowly. 
