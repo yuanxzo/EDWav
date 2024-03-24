@@ -409,9 +409,15 @@ methods
             warning(['The length of the data(:,1) is too short, and the final evaluation result may be inaccurate. It is recommended to be greater than ', num2str(30*len_of_taper),'.']);
         end
 
-%         len_of_taper=floor(len_of_taper+((start_end_point(2)-start_end_point(1)+1)-num_of_win*len_of_taper)/num_of_win);
+        len_of_taper=floor(len_of_taper+((start_end_point(2)-start_end_point(1)+1)-num_of_win*len_of_taper)/num_of_win);
 
-        [frq,fid,nfid]=obtain_freq(Fs,len_of_taper,freq_band);
+        frq=0 : Fs/len_of_taper : Fs/2+Fs/len_of_taper;
+        if frq(end)>Fs/2
+            frq(end)=[];
+        end
+        fin = frq>=freq_band(1) & frq<=freq_band(2);
+        frq=frq(fin);
+        nfid=length(frq);
 
         % Configure data
         wvfm=obj.data(start_end_point(1):start_end_point(2),1);
@@ -424,7 +430,7 @@ methods
         fft_all  = zeros(nfid,num_of_win,num_of_taper);
         for k=1:num_of_taper
             tmp = fft((wvfm_seg.*tapers(:,k)));
-            fft_all(:,:,k) = tmp(fid(1)+1:fid(2)+1,:); 
+            fft_all(:,:,k) = tmp(fin,:); 
         end
         
         % Evaluation with multitaper spectrum analysis
@@ -481,11 +487,11 @@ methods
             new_obj.isdiff = new_obj.proxy(1,1)<=tol && new_obj.proxy(2,1)<=tol && new_obj.proxy(3,1)<=tol;
         end
         
-        temp = obj.bandpass(frq([fid(1),fid(2)]),'SE',start_end_point);
+        temp = obj.bandpass(frq([1,nfid]),'SE',start_end_point);
         new_obj.A = tA;
         new_obj.B = tB;
         new_obj.C = tC;
-        new_obj.F = frq(fid(1):fid(2));
+        new_obj.F = frq;
         new_obj.info.len_of_taper   = len_of_taper;
         new_obj.info.num_of_win     = num_of_win;
         new_obj.info.tapers         = tapers;
@@ -870,28 +876,4 @@ function [tapers,lambda] = sinusoidal_tapers(len_of_win,num_of_taper)
         tapers(:,i)=sqrt(2/(len_of_win+1)).*sin((pi*i.*points)./(len_of_win+1));
     end
     lambda(1:num_of_taper)=1/num_of_taper;
-end
-
-% Obtain frequency information related to conditions A, B and C
-function [frq,fid,nfid]=obtain_freq(Fs,len_of_taper,band)
-    len_of_frq = ceil((len_of_taper-1)/2)-1;
-    df         = Fs/len_of_taper;
-    frq        = (1:1:len_of_frq).*df;  % Zero frequency is not considered
-
-    fid=[1,len_of_frq];
-    for i=1:len_of_frq-1
-        if band(1)>frq(i) && band(1)<frq(i+1)
-            fid(1)=i+1;
-        end
-        if band(1)==frq(i)
-            fid(1)=i;
-        end
-        if band(2)>frq(i) && band(2)<frq(i+1)
-            fid(2)=i;
-        end
-        if band(2)==frq(i+1)
-            fid(2)=i+1;
-        end
-    end
-    nfid=fid(2)-fid(1)+1;
 end
