@@ -103,7 +103,7 @@ class EDWav():
 
         np.seterr(invalid='ignore')
 
-        # Start to calculate the three conditions A, B and C of the wave-field.
+        # Start to calculate the three conditions A, B and C of the waveform.
         for i in range(NT):
             temp = np.fft.rfft(wave_seg*np.expand_dims(tapers[:,i], axis=1), axis=0) / len_of_win
             temp[1:-1,:] = 2*temp[1:-1,:]
