@@ -109,7 +109,6 @@ methods (Static)
         addOptional(p,'SF',0.05) % scale factor of the scale dependent RMS
         addOptional(p,'CP','no') % whether to perform an auxiliary calculation for finding the corner point of scale factor?
         addOptional(p,'PB','no') % show calculation progress? Tip: the display of work progress will increase the calculation time to a certain extent
-        addOptional(p,'PL','no') % are parallel loops used? Tip: when the data to be evaluated is short, using parallelism does not necessarily reduce the calculation time
         p.parse(varargin{:});
         
                                         % Limitations (as follows)
@@ -123,7 +122,6 @@ methods (Static)
         scale_factor    = p.Results.SF; % 0<=scale_factor<=1
         CP              = p.Results.CP;
         PB              = p.Results.PB;
-        PL              = p.Results.PL; % 0<=int8(PL)<=maxNumCompThreads or PL='yes'/'no'
 
         % Create an object for the input data
         obj=edw.build_obj(data,'Fs',Fs);
@@ -134,7 +132,7 @@ methods (Static)
             obj(i)=obj(i).evaluation('FB',freq_band,'NT',num_of_taper,...
                            'LT',len_of_taper,'SF',scale_factor,'TO',tol,...
                            'FR',freq_res,'SE',start_end_point,'CP',CP,...
-                           'PB',PB,'PL',PL);
+                           'PB',PB);
         end
     end
     
@@ -154,22 +152,11 @@ methods (Static)
         p = inputParser;
         addOptional(p,'path',[])
         addOptional(p,'npts',[])
-        addOptional(p,'PL','no')
         addOptional(p,'PB','no')
         p.parse(varargin{:});
         
         path = p.Results.path;
         npts = p.Results.npts;        
-        PL   = p.Results.PL;
-        if strcmp(PL,'yes')
-            parallel_threads=maxNumCompThreads;
-        elseif isnumeric(PL)  %  0<=int8(PL)<=maxNumCompThreads
-            PL=int8(PL);parallel_threads=PL;
-            if PL<=0; parallel_threads=0;end
-            if PL>maxNumCompThreads; parallel_threads=maxNumCompThreads;end
-        else
-            parallel_threads=0;
-        end
 
         % Check the correctness of 'files' 
         if ischar(filename)
@@ -187,7 +174,7 @@ methods (Static)
         else
             pbar = progressBar(N*2+1,'pname','READ SAC                  ');
         end
-        parfor (i=1:N, parallel_threads)
+        parfor i=1:N
             obj(i)=edw;
             [hdr,data]=load_sac([path,filename{i}]);  % Quoted from: https://github.com/seismo-netizen/RN_detection/blob/master/load_sac.m
             
@@ -240,7 +227,6 @@ methods (Static)
         addOptional(p,'npts',[])
         addOptional(p,'lat',[])
         addOptional(p,'lon',[])
-        addOptional(p,'PL','no')
         addOptional(p,'PB','no')
         p.parse(varargin{:});
         
@@ -248,16 +234,6 @@ methods (Static)
         npts = p.Results.npts;
         lat  = p.Results.lat;
         lon  = p.Results.lon;
-        PL   = p.Results.PL; 
-        if strcmp(PL,'yes')
-            parallel_threads=maxNumCompThreads;
-        elseif isnumeric(PL)  %  0<=int8(PL)<=maxNumCompThreads
-            PL=int8(PL);parallel_threads=PL;
-            if PL<=0; parallel_threads=0;end
-            if PL>maxNumCompThreads; parallel_threads=maxNumCompThreads;end
-        else
-            parallel_threads=0;
-        end
 
         % Check the correctness of 'files' 
         if ischar(filename)
@@ -289,7 +265,7 @@ methods (Static)
         else
             pbar = progressBar(N*2+1,'pname','READ miniSEED                  ');
         end
-        parfor (i=1:N, parallel_threads)   % parfor may use more memory than 'for' loops. If out of memory, you can choose to set 'PR' to 'no'.
+        parfor i=1:N
             obj(i)=edw;
             signalStruct=ReadMSEEDFast([path,filename{i}]);  % Quoted from: https://www.mathworks.com/matlabcentral/fileexchange/46532-readmseedfast
             dd=cat(1,signalStruct.data);
@@ -401,7 +377,6 @@ methods
         addOptional(p,'SF',0.05)
         addOptional(p,'CP','no')
         addOptional(p,'PB','no')
-        addOptional(p,'PL','no')
         p.parse(varargin{:});
 
         Fs              = p.Results.Fs;
@@ -414,19 +389,9 @@ methods
         start_end_point = p.Results.SE;
         CP              = p.Results.CP;
         PB              = p.Results.PB;
-        PL              = p.Results.PL;
         
         if isempty(freq_band)
             freq_band=[0,obj.station.Fs/2];
-        end
-        if strcmp(PL,'yes')
-            parallel_threads=maxNumCompThreads;
-        elseif isnumeric(PL)  %  0<=int8(PL)<=maxNumCompThreads
-            PL=int8(PL);parallel_threads=PL;
-            if PL<=0; parallel_threads=0;end
-            if PL>maxNumCompThreads; parallel_threads=maxNumCompThreads;end
-        else
-            parallel_threads=0;
         end
         
         % Quality control of parameters
