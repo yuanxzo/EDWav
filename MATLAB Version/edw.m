@@ -61,6 +61,7 @@
 %   Date:   2022.12.07 (Version 1.0.0)
 %           2023.03.19 (Version 1.0.1)
 %           2023.06.19 (Version 1.0.2)
+%           2024.03.21 (Version 1.1.0)
 %   References: 
 %       [1] Bo Yang, Haoran Meng, Ning Gu, Xin Liu, Xiaofei Chen, and
 %           Yehuda Ben-Zion. 2023. A Frequency Domain Methodology for
@@ -73,9 +74,9 @@ classdef edw
 properties
     data     % waveform data, the vector of npts*1;
     station  % some information about the station that records the 'data';
-    A        % the condition A, which is a vector;
-    B        % the condition B, which is a matrix;
-    C        % the condition C, which is a matrix;
+    A=0      % the condition A, which is a vector;
+    B=0      % the condition B, which is a matrix;
+    C=0      % the condition C, which is a matrix;
     F        % the frequency coordinate of A, B and C, which is a vector;
     proxy    % the proxies of A, B and C, which is a 3*1 vector;
     info     % some information about A, B and C
@@ -129,10 +130,12 @@ methods (Static)
         
         % Call obj.evaluation function for the created object to work out
         % the evaluation result.
-        obj=obj.evaluation('Fs',Fs,'FB',freq_band,'NT',num_of_taper,...
+        for i=1:length(obj)
+            obj(i)=obj(i).evaluation('FB',freq_band,'NT',num_of_taper,...
                            'LT',len_of_taper,'SF',scale_factor,'TO',tol,...
                            'FR',freq_res,'SE',start_end_point,'CP',CP,...
                            'PB',PB,'PL',PL);
+        end
     end
     
 
@@ -152,6 +155,7 @@ methods (Static)
         addOptional(p,'path',[])
         addOptional(p,'npts',[])
         addOptional(p,'PL','no')
+        addOptional(p,'PB','no')
         p.parse(varargin{:});
         
         path = p.Results.path;
@@ -178,12 +182,16 @@ methods (Static)
 
         % Read the sac file(s) and and create an object for each file
         obj(1:N)=edw;
-        pbar = progressBar(N*2+1,'pname','READ SAC                  ');
+        if strcmp(p.Results.PB,'no')
+            pbar = progressBar(-1,'pname','READ SAC                  ');
+        else
+            pbar = progressBar(N*2+1,'pname','READ SAC                  ');
+        end
         parfor (i=1:N, parallel_threads)
             obj(i)=edw;
             [hdr,data]=load_sac([path,filename{i}]);  % Quoted from: https://github.com/seismo-netizen/RN_detection/blob/master/load_sac.m
             
-            obj(i).station.name=hdr.kstnm;
+            obj(i).station.name=strrep(hdr.kstnm,' ','');
             obj(i).station.date=[num2str(hdr.nzyear),'J',num2str(hdr.nzjday)];
             obj(i).station.Fs=(1/hdr.delta);
             obj(i).station.dt=1/obj(i).station.Fs;
@@ -233,6 +241,7 @@ methods (Static)
         addOptional(p,'lat',[])
         addOptional(p,'lon',[])
         addOptional(p,'PL','no')
+        addOptional(p,'PB','no')
         p.parse(varargin{:});
         
         path = p.Results.path;
@@ -275,7 +284,11 @@ methods (Static)
         
         % Read the miniSEED file(s) and and create an object for each file
         obj(1:N)=edw;
-        pbar = progressBar(N*2+1,'pname','READ miniSEED                  ');
+        if strcmp(p.Results.PB,'no')
+            pbar = progressBar(-1,'pname','READ miniSEED                  ');
+        else
+            pbar = progressBar(N*2+1,'pname','READ miniSEED                  ');
+        end
         parfor (i=1:N, parallel_threads)   % parfor may use more memory than 'for' loops. If out of memory, you can choose to set 'PR' to 'no'.
             obj(i)=edw;
             signalStruct=ReadMSEEDFast([path,filename{i}]);  % Quoted from: https://www.mathworks.com/matlabcentral/fileexchange/46532-readmseedfast
@@ -430,6 +443,9 @@ methods
         if num_of_win<30
             warning(['The length of the data(:,1) is too short, and the final evaluation result may be inaccurate. It is recommended to be greater than ', num2str(30*len_of_taper),'.']);
         end
+
+%         len_of_taper=floor(len_of_taper+((start_end_point(2)-start_end_point(1)+1)-num_of_win*len_of_taper)/num_of_win);
+
         [frq,fid,nfid]=obtain_freq(Fs,len_of_taper,freq_band);
 
         % Configure data
@@ -439,7 +455,7 @@ methods
         for i=1:num_of_win
             wvfm_seg(1:len_of_taper,i) = wvfm(idx(i):idx(i)+len_of_taper-1);
         end
-	[tapers,weight] = sinusoidal_tapers(len_of_taper,num_of_taper);
+        [tapers,weight] = sinusoidal_tapers(len_of_taper,num_of_taper);
         fft_all  = zeros(nfid,num_of_win,num_of_taper);
         for k=1:num_of_taper
             tmp = fft((wvfm_seg.*tapers(:,k)));
@@ -455,25 +471,35 @@ methods
         else
             pbar=progressBar(-1);
         end
+
         for k=1:num_of_taper
             wvfm_fft = fft_all(:,:,k); 
             E_power  = mean(abs(wvfm_fft).^2,2);
-            [tmp_A,tmp_B,tmp_C,pbar] = calculation(wvfm_fft,E_power,nfid,num_of_win,pbar,parallel_threads);
 
-            tA = tA+weight(k).*tmp_A;
-            tB = tB+weight(k).*tmp_B;
-            tC = tC+weight(k).*tmp_C;
+            EEpower = E_power .* E_power';
+            tmp_A = abs(mean(wvfm_fft, 2)) .^2 ./ E_power; %#ok<*PROPLC> 
+            tempB = 0; tempC = 0;
+            for j = 1 : num_of_win
+                tempB = tempB + wvfm_fft(:,j) * wvfm_fft(:,j).';
+                tempC = tempC + wvfm_fft(:,j) * conj(wvfm_fft(:,j).');
+            end
+            tmp_B = abs(tempB/num_of_win) .^2 ./ EEpower;
+            tmp_C = abs(tempC/num_of_win) .^2 ./ EEpower;
+
+            tA = tA + weight(k).*tmp_A;
+            tB = tB + weight(k).*tmp_B;
+            tC = tC + weight(k).*tmp_C;
         end
         pbar.stop;
-        
+
         % Suppressing side lobe effect of sinusoidal tapers
         % (non final scheme)
-        Cw=ones(nfid,nfid);CC=logspace(1,0,num_of_taper+1);
-        for k=2:num_of_taper+1
-            Cw(k:nfid+1:end)=CC(k-1);
-        end
-        Cw=Cw.*Cw';
-        tC=tC./Cw;
+%         Cw=ones(nfid,nfid);CC=logspace(1,0,num_of_taper+1);
+%         for k=2:num_of_taper+1
+%             Cw(k:nfid+1:end)=CC(k-1);
+%         end
+%         Cw=Cw.*Cw';
+%         tC=tC./Cw;
 
         % Output
         new_obj=edw; new_obj.data=obj.data; new_obj.station=obj.station;
@@ -684,10 +710,15 @@ methods
                 end
             end
             time=obj(i).time([se(1),se(2)]);ntime(i,:)=[time(1),time(end)];
-            plot(time,obj(i).data(se(1):se(2),1)./max(abs(obj(i).data(se(1):se(2),1)))+i*2);hold on
+            if time(end)>3600
+                plot(time./3600,obj(i).data(se(1):se(2),1)./max(abs(obj(i).data(se(1):se(2),1)))+i*2);hold on
+                xlabel('Time (hr)');xlim([min(ntime(:,1))./3600,max(ntime(:,2))./3600])
+            else
+                plot(time,obj(i).data(se(1):se(2),1)./max(abs(obj(i).data(se(1):se(2),1)))+i*2);hold on
+                xlabel('Time (s)');xlim([min(ntime(:,1)),max(ntime(:,2))])
+            end
             sname{i}=obj(i).station.name;
-        end
-        xlabel('Time (s)');xlim([min(ntime(:,1)),max(ntime(:,2))])
+        end        
         yticks(2:2:2*N);yticklabels(sname);ylim([1,2*N+1]);
         
         subplot(1,2,2)
@@ -722,9 +753,10 @@ methods
         end
         if ~isempty(id(id>0))
             H=figure;
-            scatter(lon(id),lat(id),'kv','filled','d');
-            text(lon(id),lat(id),name(id),'fontsize',8)
-            xlabel('longitude (Deg.)');ylabel('latitude (Deg.)')
+            geoscatter(lat(id),lon(id),'kv','filled','d');
+            geobasemap landcover
+%             text(lon(id),lat(id),name(id),'fontsize',8)
+%             xlabel('longitude (Deg.)');ylabel('latitude (Deg.)')
         end
     end
     
@@ -739,69 +771,55 @@ methods
         if isempty(obj.A) || isempty(obj.B) || isempty(obj.C)
             error('obj.data has not been evaluated!')
         end
-        WW=23;HH=7;
-        H=figure('Units','centimeters','Position',[15 7 WW HH]);
-        subplot('Position',[1.5/WW,1.5/HH,4/WW,4/HH]);
-        t=obj.time([1 length(obj.info.evaluated_data)]);
-        plot(t,obj.info.evaluated_data./max(abs(obj.info.evaluated_data)),'k-');xlim([min(t) max(t)]);ylim([-1 1])
-        xlabel('time (s)');axis square;ylabel('Amplitude (-)')
-        title('(a) Normalized evaluated waveform_ ');
-        % text(0.03*max(t),0.9,'(a)','fontsize',14)
-        
-        subplot('Position',[7/WW,1.5/HH,4/WW,4/HH]);
+        % WW=23;HH=7;
+        % H=figure('Units','centimeters','Position',[15 7 WW HH]);
+        % % subplot('Position',[1.5/WW,1.5/HH,4/WW,4/HH]);
+        % % t=obj.time([1 length(obj.info.evaluated_data)]);
+        % % plot(t,obj.info.evaluated_data./max(abs(obj.info.evaluated_data)),'k-');xlim([min(t) max(t)]);ylim([-1 1])
+        % % xlabel('time (s)');axis square;ylabel('Amplitude (-)')
+        % % title('(a) Normalized evaluated waveform_ ');
+        % % text(0.03*max(t),0.9,'(a)','fontsize',14)
+        % 
+        % subplot('Position',[7/WW,1.5/HH,4/WW,4/HH]);
+        % plot(obj.F,obj.A,'k.-');xlim([min(obj.F) max(obj.F)]);ylim([0 1])
+        % xlabel('Frequency (Hz)');axis square
+        % title(['(b) Cond. A     P_A = ',num2str(roundn(obj.proxy(1),-3))]);
+        % % text(0.03*(max(obj.F)-min(obj.F)),0.95,'(b)','fontsize',14)
+        % 
+        % subplot('Position',[12.5/WW,1.5/HH,4/WW,4/HH]);
+        % imagesc(obj.F,obj.F,obj.B);clim([0 1])
+        % xlabel('Frequency (Hz)');ylabel('Frequency (Hz)');axis square
+        % title(['(c) Cond. B     P_B = ',num2str(roundn(obj.proxy(2),-3))]);
+        % % text(0.85*(max(obj.F)-min(obj.F)),0.05*(max(obj.F)-min(obj.F)),'(c)','fontsize',14,'color','w')
+        % 
+        % subplot('Position',[18/WW,1.5/HH,4/WW,4/HH]);
+        % imagesc(obj.F,obj.F,obj.C);clim([0 1])
+        % xlabel('Frequency (Hz)');ylabel('Frequency (Hz)');axis square
+        % title(['(d) Cond. C     P_C = ',num2str(roundn(obj.proxy(3),-3))]);
+        % % text(0.85*(max(obj.F)-min(obj.F)),0.05*(max(obj.F)-min(obj.F)),'(d)','fontsize',14,'color','w')
+
+        WW=17;HH=7;
+        H=figure('Units','centimeters','Position',[15 10 WW HH]);
+
+        subplot('Position',[1/WW,1.5/HH,4/WW,4/HH]);
         plot(obj.F,obj.A,'k.-');xlim([min(obj.F) max(obj.F)]);ylim([0 1])
-        xlabel('Frequency (Hz)');axis square
-        title(['(b) Condition A     P_A = ',num2str(roundn(obj.proxy(1),-3))]);
-        % text(0.03*(max(obj.F)-min(obj.F)),0.95,'(b)','fontsize',14)
+        xlabel('Freq. (Hz)');axis square
+        title(['Cond. A     P_A = ',num2str(roundn(obj.proxy(1),-3))]);
         
-        subplot('Position',[12.5/WW,1.5/HH,4/WW,4/HH]);
+        subplot('Position',[6.5/WW,1.5/HH,4/WW,4/HH]);
         imagesc(obj.F,obj.F,obj.B);clim([0 1])
-        xlabel('Frequency (Hz)');ylabel('Frequency (Hz)');axis square
-        title(['(c) Condition B     P_B = ',num2str(roundn(obj.proxy(2),-3))]);
-        % text(0.85*(max(obj.F)-min(obj.F)),0.05*(max(obj.F)-min(obj.F)),'(c)','fontsize',14,'color','w')
+        xlabel('Frequency (Hz)');ylabel('Freq. (Hz)');axis square
+        title(['Cond. B     P_B = ',num2str(roundn(obj.proxy(2),-3))]);
         
-        subplot('Position',[18/WW,1.5/HH,4/WW,4/HH]);
+        subplot('Position',[12/WW,1.5/HH,4/WW,4/HH]);
         imagesc(obj.F,obj.F,obj.C);clim([0 1])
-        xlabel('Frequency (Hz)');ylabel('Frequency (Hz)');axis square
-        title(['(d) Condition C     P_C = ',num2str(roundn(obj.proxy(3),-3))]);
-        % text(0.85*(max(obj.F)-min(obj.F)),0.05*(max(obj.F)-min(obj.F)),'(d)','fontsize',14,'color','w')
+        xlabel('Frequency (Hz)');ylabel('Freq. (Hz)');axis square
+        title(['Cond. C     P_C = ',num2str(roundn(obj.proxy(3),-3))]);
     end
 end
 end
 
 %% Private functions, which are the support functions for the 'edw' package
-
-% Calculate conditions A, B and C
-function [tmp_A,tmp_B,tmp_C,pbar] = calculation(wvfm_fft,E_power,nfrq,nwin,pbar,parallel_threads)
-    Emn      = zeros(nfrq,nfrq);
-    tmp_B    = zeros(nfrq,nfrq);
-    Emn_str  = zeros(nfrq,nfrq);
-    tmp_C    = zeros(nfrq,nfrq);
-    
-    parfor (i=1:nwin,parallel_threads)
-        [emn,emn_str]=sub(wvfm_fft,i,nfrq);
-        Emn     = Emn+emn./nwin;
-        Emn_str = Emn_str+emn_str./nwin;
-        pbar.progress; %#ok<PFBNS>
-    end
-
-    tmp_A = abs(mean(wvfm_fft,2)).^2./E_power;
-    tmpE=E_power(:);
-    for j=1:nfrq
-        tmp_B(j,:) = abs(Emn(j,:)).^2./(E_power(j).*tmpE)';
-        tmp_C(j,:) = abs(Emn_str(j,:)).^2./(E_power(j).*tmpE)';
-    end 
-end
-function [emn,emn_str] = sub(wvfm_fft,i,nfrq)
-    emn      = zeros(nfrq,nfrq);
-    emn_str  = zeros(nfrq,nfrq);
-    for j=1:nfrq
-        emn(j,j:end) = wvfm_fft(j,i).*wvfm_fft(j:end,i);
-        emn(:,j)     = emn(j,:);
-        emn_str(j,j:end) = wvfm_fft(j,i).*conj(wvfm_fft(j:end,i));
-        emn_str(:,j)     = conj(emn_str(j,:));
-    end
-end
 
 % Calculate the scale dependent RMS of A, B and C
 function [proxy,SF]=calculate_proxy(A,B,C,SF,CP,PB)
