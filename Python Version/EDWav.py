@@ -22,11 +22,12 @@ class EDWav():
     Procedure for evaluating the diffuseness proxy of seismic waveform
 
     A simple example:
-        import obspy
         st=obspy.read()
-        
-        obj=EDWav.evaluate(st[0].data,st[0].stats.sampling_rate) # evaluation
-        obj.result() # show result
+        wv=st[0].data
+        FS=st[0].stats.sampling_rate
+
+        obj=EDWav.evaluate(wv,FS) # evaluation
+        obj.plot()                # show result
 
     Tip: The program uses 'numba@jit' speed up.
          There may be many warnings when calling the program for the first time and it runs slowly. 
@@ -103,7 +104,7 @@ class EDWav():
 
         np.seterr(invalid='ignore')
 
-        # Start to calculate the three conditions A, B and C of the waveform.
+        # Start to calculate the three conditions A, B and C of the wave-field.
         for i in range(NT):
             temp = np.fft.rfft(wave_seg*np.expand_dims(tapers[:,i], axis=1), axis=0) / len_of_win
             temp[1:-1,:] = 2*temp[1:-1,:]
@@ -125,7 +126,7 @@ class EDWav():
             obj.C = obj.C + weight[i]*C
 
         # Calculate the diffuseness proxies of the three conditions
-        obj.proxy = sRMS(obj.A,obj.B,obj.C-np.eye(len(obj.A)),SF)
+        obj = obj.sRMS(SF)
 
         np.seterr(invalid='warn')
 
@@ -135,6 +136,65 @@ class EDWav():
                      'SF_of_sRMS'  : SF}
 
         return obj
+
+    @jit
+    def sRMS(self,SF):
+        """ 
+        Calculate the sRMS function values of conditions A, B and C at SF.
+        """ 
+        A=self.A
+        B=self.B
+        C=self.C-np.eye(len(A))
+
+        N = math.floor(len(A))
+        N2= math.ceil(N/2)
+        s = math.ceil(N*SF)
+
+        meanA=np.mean(A)
+        meanB=np.mean(B)
+        meanC=np.mean(C)
+
+        wA=np.zeros(N)
+        wB=np.zeros((N,N))
+        wC=np.zeros((N,N))
+        proxy=np.zeros(3)
+
+        if s==N:
+            wA=1
+            wB=1
+            wC=1
+        else:
+            for i in range(N):
+                indexi=np.arange(i-s,i+s+1)
+                fin=[0,0]
+                fin[0]=len(np.where(indexi<0)[0])
+                fin[1]=len(np.where(indexi<N)[0])
+                indexi=indexi[fin[0]:fin[1]]
+
+                wA[i]=np.mean(A[indexi])
+
+                for j in range(i,N):
+                    indexj=np.arange(j-s,j+s+1)
+                    fin=[0,0]
+                    fin[0]=len(np.where(indexj<0)[0])
+                    fin[1]=len(np.where(indexj<N)[0])
+                    indexj=indexj[fin[0]:fin[1]]
+
+                    wB[i,j]=np.mean(B[indexi[0]:indexi[-1]+1,indexj[0]:indexj[-1]+1])
+                    wC[i,j]=np.mean(C[indexi[0]:indexi[-1]+1,indexj[0]:indexj[-1]+1])
+                    wB[j,i]=wB[i,j]
+                    wC[j,i]=wC[i,j]
+
+            wA=wA/meanA
+            wB=wB/meanB
+            wC=wC/meanC
+
+        proxy[0]=np.sqrt(np.mean((wA * A) **2))
+        proxy[1]=np.sqrt(np.mean((wB * B) **2))
+        proxy[2]=np.sqrt(np.mean((wC * C) **2))
+        
+        self.proxy = proxy
+        return self
 
     def result(self):
         """ 
@@ -200,57 +260,3 @@ def add_right_cax(ax, pad, width):
     cax = ax.figure.add_axes(caxpos)
 
     return cax
-
-@jit
-def sRMS(A,B,C,SF):
-    """ 
-    Calculate the sRMS function values of conditions A, B and C at SF.
-    """ 
-    N = math.floor(len(A))
-    N2= math.ceil(N/2)
-    s = math.ceil(N*SF)
-
-    meanA=np.mean(A)
-    meanB=np.mean(B)
-    meanC=np.mean(C)
-
-    wA=np.zeros(N)
-    wB=np.zeros((N,N))
-    wC=np.zeros((N,N))
-    proxy=np.zeros(3)
-
-    if s==N:
-        wA=1
-        wB=1
-        wC=1
-    else:
-        for i in range(N):
-            indexi=np.arange(i-s,i+s+1)
-            fin=[0,0]
-            fin[0]=len(np.where(indexi<0)[0])
-            fin[1]=len(np.where(indexi<N)[0])
-            indexi=indexi[fin[0]:fin[1]]
-
-            wA[i]=np.mean(A[indexi])
-
-            for j in range(i,N):
-                indexj=np.arange(j-s,j+s+1)
-                fin=[0,0]
-                fin[0]=len(np.where(indexj<0)[0])
-                fin[1]=len(np.where(indexj<N)[0])
-                indexj=indexj[fin[0]:fin[1]]
-
-                wB[i,j]=np.mean(B[indexi[0]:indexi[-1]+1,indexj[0]:indexj[-1]+1])
-                wC[i,j]=np.mean(C[indexi[0]:indexi[-1]+1,indexj[0]:indexj[-1]+1])
-                wB[j,i]=wB[i,j]
-                wC[j,i]=wC[i,j]
-
-        wA=wA/meanA
-        wB=wB/meanB
-        wC=wC/meanC
-
-    proxy[0]=np.sqrt(np.mean((wA * A) **2))
-    proxy[1]=np.sqrt(np.mean((wB * B) **2))
-    proxy[2]=np.sqrt(np.mean((wC * C) **2))
-    
-    return proxy
