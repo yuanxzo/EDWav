@@ -26,7 +26,7 @@ class EDWav():
         st=obspy.read()
         
         obj=EDWav.evaluate(st[0].data,st[0].stats.sampling_rate) # evaluation
-        obj.plot() # show result
+        obj.result() # show result
 
     Tip: The program uses 'numba@jit' speed up.
          There may be many warnings when calling the program for the first time and it runs slowly. 
