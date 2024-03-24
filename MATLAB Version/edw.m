@@ -417,6 +417,14 @@ methods
         end
         fin = frq>=freq_band(1) & frq<=freq_band(2);
         frq=frq(fin);
+        if frq(end)==Fs/2
+            frq(end)=[];
+            fin(end)=false;
+        end
+        if frq(1)==0
+            frq(1)=[];
+            fin(1)=false;
+        end
         nfid=length(frq);
 
         % Configure data
