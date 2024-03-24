@@ -467,7 +467,7 @@ methods
         tB = zeros(nfid,nfid);
         tC = zeros(nfid,nfid);
         if strcmp(PB,'yes')
-            pbar=progressBar(num_of_taper*num_of_win,'pname','EVALUATION');
+            pbar=progressBar(num_of_taper,'pname','EVALUATION');
         else
             pbar=progressBar(-1);
         end
@@ -489,6 +489,8 @@ methods
             tA = tA + weight(k).*tmp_A;
             tB = tB + weight(k).*tmp_B;
             tC = tC + weight(k).*tmp_C;
+
+            pbar.progress;
         end
         pbar.stop;
 
