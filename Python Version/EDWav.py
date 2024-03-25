@@ -47,13 +47,13 @@ class EDWav():
 
     def evaluate(wave:np.ndarray=[],FS=1,FB=[],FR=100,NT=1,SF=0.05):
         """
-        Function introduction: evaluate the diffuseness proxy of input seismic waveform segment.
+        Function introduction: evaluate the diffuseness of input seismic waveform segment.
         
         Input parameters introduction:
         wave    single channel seismic waveform data, for example: st=obspy.read('test.sac'); wave=st[0].data;
         FS      waveform data sampling rate;
         FB      frequency range to be evaluated, for example: [1, 100], unit: Hz;
-        FR      the frequency resolution of the result
+        FR      the frequency resolution of the result;
         NT      number of multitapers;
         SF      a parameter of sRMS.
 
@@ -104,7 +104,7 @@ class EDWav():
 
         np.seterr(invalid='ignore')
 
-        # Start to calculate the three conditions A, B and C of the wave-field.
+        # Start to calculate the three conditions A, B and C of the waveform.
         for i in range(NT):
             temp = np.fft.rfft(wave_seg*np.expand_dims(tapers[:,i], axis=1), axis=0) / len_of_win
             temp[1:-1,:] = 2*temp[1:-1,:]
