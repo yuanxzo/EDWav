@@ -73,7 +73,7 @@ class EDWav():
         # Calculate the minimum length of the window according to the 'FR' and 'FB' entered
         len_of_win=math.ceil(FR*FS/(FB[1]-FB[0])) 
         if npts < len_of_win:
-            raise Exception("The waveform length is too small, end the evaluation!")
+            raise Exception("The waveform length is too short, end the evaluation!")
         
         # The number of windows
         num_of_win=math.floor(npts/len_of_win)    
