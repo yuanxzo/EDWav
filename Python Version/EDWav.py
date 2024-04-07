@@ -50,12 +50,12 @@ class EDWav():
         Function introduction: evaluate the diffuseness of input seismic waveform segment.
         
         Input parameters introduction:
-        wave    single channel seismic waveform data, for example: st=obspy.read('test.sac'); wave=st[0].data;
-        FS      waveform data sampling rate;
-        FB      frequency range to be evaluated, for example: [1, 100], unit: Hz;
-        FR      the frequency resolution of the result;
-        NT      number of multitapers;
-        SF      a parameter of sRMS.
+        - wave :    single channel seismic waveform data, for example: st=obspy.read('test.sac'); wave=st[0].data;
+        - FS   :    waveform data sampling rate;
+        - FB   :    frequency range to be evaluated, for example: [1, 100], unit: Hz;
+        - FR   :    the frequency resolution of the result;
+        - NT   :    number of multitapers;
+        - SF   :    a parameter of sRMS.
 
         Output parameters introduction: EDWav object instance.
         """
