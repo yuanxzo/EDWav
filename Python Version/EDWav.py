@@ -127,7 +127,9 @@ class EDWav():
 
         # Calculate the diffuseness proxies of the three conditions
         obj = obj.sRMS(SF)
-
+        # Considering the similarity between conditions B and C, it is possible to make the proxy of condition C equal to that of condition B to avoid the influence of diagonal sidelobes on the proxy of condition C
+        obj.proxy[2]=obj.proxy[1]
+        
         np.seterr(invalid='warn')
 
         obj.stats = {'len_of_win'  : len_of_win, \
