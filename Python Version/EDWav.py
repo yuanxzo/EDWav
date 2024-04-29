@@ -194,7 +194,7 @@ class EDWav():
         proxy[2]=np.sqrt(np.mean((wC * C) **2))
         # Considering the similarity between conditions B and C, it is possible to make the proxy of condition C 
         # equal to that of condition B to avoid the influence of diagonal sidelobes on the proxy of condition C
-        # (Note that this is only an empirical operation)
+        # (Note that this is only an empirical operation. You can choose to comment on the following line of code to reject this operation.)
         proxy[2]=proxy[1]
         
         self.proxy = proxy
