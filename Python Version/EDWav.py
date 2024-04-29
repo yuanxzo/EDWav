@@ -7,7 +7,7 @@ Copyright (C) 2024 Bo YANG
 """ 
 
 __Version__ = '1.1.0'
-__Testing_Environment__ = 'Python 3.11'
+__Testing_Environment__ = 'Python==3.11.7  numba==0.58.1'    # If the run fails, consider using these specified versions
 
 import math
 import numpy as np
