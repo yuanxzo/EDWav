@@ -11,4 +11,4 @@ In addition, the Python and Matlab versions of v1.1.0 have adopted more efficien
 Due to the flexibility of the Python language, we can easily call Python libraries on the Matlab platform like using its built-in functions. Therefore, to maintain consistency, we recommend using the **Python version**. In addition, updates to the Matlab version may be paused in the future.
 
 # **Reference**
-> Bo Yang, Haoran Meng, Ning Gu, Xin Liu, Xiaofei Chen, and Yehuda Ben-Zion. 2023. A Frequency Domain Methodology for Quantitative Evaluation of Diffuse Wavefield with Applications to Seismic Imaging. Accepted.
+> Bo Yang, Haoran Meng, Ning Gu, Xin Liu, Xiaofei Chen, and Yehuda Ben-Zion. 2024. A Frequency Domain Methodology for Quantitative Evaluation of Diffuse Wavefield with Applications to Seismic Imaging. Accepted.
