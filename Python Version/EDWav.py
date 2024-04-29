@@ -127,10 +127,6 @@ class EDWav():
 
         # Calculate the diffuseness proxies of the three conditions
         obj = obj.sRMS(SF)
-        # Considering the similarity between conditions B and C, it is possible to make the proxy of condition C 
-        # equal to that of condition B to avoid the influence of diagonal sidelobes on the proxy of condition C
-        # (Note that this is only an empirical operation)
-        obj.proxy[2]=obj.proxy[1]
         
         np.seterr(invalid='warn')
 
@@ -196,6 +192,10 @@ class EDWav():
         proxy[0]=np.sqrt(np.mean((wA * A) **2))
         proxy[1]=np.sqrt(np.mean((wB * B) **2))
         proxy[2]=np.sqrt(np.mean((wC * C) **2))
+        # Considering the similarity between conditions B and C, it is possible to make the proxy of condition C 
+        # equal to that of condition B to avoid the influence of diagonal sidelobes on the proxy of condition C
+        # (Note that this is only an empirical operation)
+        proxy[2]=proxy[1]
         
         self.proxy = proxy
         return self
