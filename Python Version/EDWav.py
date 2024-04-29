@@ -1,7 +1,7 @@
 """
 Name  : The Method of Evaluation of the Diffuseness of the Wavefield (EDWav Method)
 Author: Bo YANG (seism.yang@foxmail.com)
-Latest: 2024-03-16   
+Latest: 2024-04-29   
 
 Copyright (C) 2024 Bo YANG
 """ 
