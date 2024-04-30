@@ -242,10 +242,10 @@ def sinusoidal_tapers(len_of_win,num_of_taper):
 
     points=np.arange(1,len_of_win+1)
     tapers=np.zeros((len_of_win,num_of_taper))
-    weight=np.zeros(num_of_taper)
+    weight=np.arange(num_of_taper,0,-1)
+    weight=weight/np.sum(weight)
     for i in range(num_of_taper):
         tapers[:,i]=np.sqrt(2/(len_of_win+1))*np.sin((np.pi*(i+1)*points)/(len_of_win+1))
-        weight[i]=1/num_of_taper
 
     return tapers, weight
 
