@@ -883,5 +883,5 @@ function [tapers,lambda] = sinusoidal_tapers(len_of_win,num_of_taper)
     for i=1:num_of_taper
         tapers(:,i)=sqrt(2/(len_of_win+1)).*sin((pi*i.*points)./(len_of_win+1));
     end
-    lambda(1:num_of_taper)=1/num_of_taper;
+    lambda(1:num_of_taper)=(num_of_taper:-1:1)./sum(num_of_taper:-1:1);
 end
