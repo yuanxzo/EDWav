@@ -4,7 +4,7 @@ Author: Bo YANG (seism.yang@foxmail.com)
 Reference: Yang, B., Meng, H., Gu, N., Liu, X., Chen, X., & Ben‐Zion, Y. (2024). 
            A frequency domain methodology for quantitative evaluation of diffuse wavefield with applications to seismic imaging. 
            Journal of Geophysical Research: Solid Earth, 129, e2024JB028895. https://doi.org/10.1029/2024JB028895
-Latest: 2024-04-29   
+Latest: 2024-05-14   
 
 Copyright (C) 2024 Bo YANG
 """ 
