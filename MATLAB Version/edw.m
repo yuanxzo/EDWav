@@ -63,10 +63,12 @@
 %           2023.06.19 (Version 1.0.2)
 %           2024.03.21 (Version 1.1.0)
 %   References: 
-%       [1] Bo Yang, Haoran Meng, Ning Gu, Xin Liu, Xiaofei Chen, and
-%           Yehuda Ben-Zion. 2023. A Frequency Domain Methodology for
-%           Quantitative Evaluation of Diffuse Wavefield with Applications
-%           to Seismic Imaging. In preparation.
+%       [1] Yang, B., Meng, H., Gu, N., Liu, X., Chen, X., & Ben‐Zion, Y.
+%           (2024). A frequency domain methodology for quantitative 
+%	    evaluation of diffuse wavefield with applications to seismic 
+%           imaging. Journal of Geophysical Research: Solid Earth, 129, 
+%           e2024JB028895. https://doi.org/10.1029/2024JB028895
+%
 % =========================================================================
 
 classdef edw
