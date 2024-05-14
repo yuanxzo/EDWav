@@ -95,6 +95,6 @@ disp(new.isdiff)
 % physical implications of this method:
 %   [1] Yang, B., Meng, H., Gu, N., Liu, X., Chen, X., & Ben‐Zion, Y.
 %       (2024). A frequency domain methodology for quantitative 
-%	    evaluation of diffuse wavefield with applications to seismic 
+%       evaluation of diffuse wavefield with applications to seismic 
 %       imaging. Journal of Geophysical Research: Solid Earth, 129, 
 %       e2024JB028895. https://doi.org/10.1029/2024JB028895
