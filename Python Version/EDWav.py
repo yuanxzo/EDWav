@@ -128,6 +128,15 @@ class EDWav():
             obj.B = obj.B + weight[i]*B
             obj.C = obj.C + weight[i]*C
 
+        # Suppressing side lobe effect of sinusoidal tapers
+        # (Note that this is only an empirical operation. You can choose to comment on the following lines of code to reject this operation.)
+        Cw=np.ones((nfin*nfin,1))
+        CC=np.logspace(1,0,NT+1)
+        for k in range(1,NT+1):
+            Cw[k:-1:nfin+1]=CC[k-1]
+        Cw=Cw.reshape(nfin,nfin)*Cw.reshape(nfin,nfin).T
+        obj.C=obj.C/Cw;
+               
         # Calculate the diffuseness proxies of the three conditions
         obj = obj.sRMS(SF)
         
