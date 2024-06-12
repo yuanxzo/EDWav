@@ -96,7 +96,8 @@ class EDWav():
         fin[0]=len(np.where(freqs<FB[0])[0])
         fin[1]=len(np.where(freqs<=FB[1])[0])
         obj.freqs=freqs[fin[0]:fin[1]]
-
+        nfin=len(obj.freqs)
+               
         # taper
         tapers, weight = sinusoidal_tapers(len_of_win,NT)
 
