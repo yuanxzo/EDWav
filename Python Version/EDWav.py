@@ -136,7 +136,7 @@ class EDWav():
         for k in range(1,NT+1):
             Cw[k:-1:nfin+1]=CC[k-1]
         Cw=Cw.reshape(nfin,nfin)*Cw.reshape(nfin,nfin).T
-        obj.C=obj.C/Cw;
+        obj.C=obj.C/Cw
                
         # Calculate the diffuseness proxies of the three conditions
         obj = obj.sRMS(SF)
