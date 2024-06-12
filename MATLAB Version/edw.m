@@ -477,12 +477,12 @@ methods
 
         % Suppressing side lobe effect of sinusoidal tapers
         % (non final scheme)
-%         Cw=ones(nfid,nfid);CC=logspace(1,0,num_of_taper+1);
-%         for k=2:num_of_taper+1
-%             Cw(k:nfid+1:end)=CC(k-1);
-%         end
-%         Cw=Cw.*Cw';
-%         tC=tC./Cw;
+         Cw=ones(nfid,nfid);CC=logspace(1,0,num_of_taper+1);
+         for k=2:num_of_taper+1
+             Cw(k:nfid+1:end)=CC(k-1);
+         end
+         Cw=Cw.*Cw';
+         tC=tC./Cw;
 
         % Output
         new_obj=edw; new_obj.data=obj.data; new_obj.station=obj.station;
