@@ -7,7 +7,7 @@ clear
 EDWav = py.importlib.import_module('EDWav');  
 
 % load a Matlab formatted test seismic waveform data
-load('demo_data.mat');
+load('Demo_data.mat');
 
 % evaluate this waveform
 obj=EDWav.EDWav.evaluate(wvfm,FS=Fs);
