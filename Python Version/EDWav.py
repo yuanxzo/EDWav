@@ -58,7 +58,7 @@ class EDWav():
         - FB   :    frequency range to be evaluated, for example: [1, 100], unit: Hz;
         - FR   :    the frequency resolution of the result;
         - NT   :    number of multitapers;
-        - SF   :    a parameter of sRMS.
+        - SF   :    a parameter of sRMS, 0<=SF<=1. If SF==-1, then the sRMS is not calculated
 
         Output parameters introduction: EDWav object instance.
         """
@@ -139,7 +139,10 @@ class EDWav():
         obj.C=obj.C/Cw
                
         # Calculate the diffuseness proxies of the three conditions
-        obj = obj.sRMS(SF)
+        if SF>=0 and SF<=1:
+            obj = obj.sRMS(SF)
+        else:
+            obj.proxy=[np.nan, np.nan, np.nan]
         
         np.seterr(invalid='warn')
 
