@@ -153,6 +153,172 @@ class EDWav():
 
         return obj
 
+    def evaluate_sliding(wave:np.ndarray=[], FS=1, FB=[], FR=100, NT=1, SF=0.05, NW=30, DW=None, NM=1):
+        """
+        Function introduction:
+        - Evaluate sliding window analysis on an input seismic waveform.
+
+        Parameters:
+        - wave (np.ndarray): Single channel seismic waveform data. Example: st = obspy.read('test.sac'); wave = st[0].data.
+        - FS (int):          Sampling rate of the waveform data.
+        - FB (list):         Frequency range to be evaluated, e.g., [1, 100] in Hz.
+        - FR (int):          Frequency resolution of the result.
+        - NT (int):          Number of multitapers.
+        - SF (float):        A parameter of sRMS, 0 <= SF <= 1. If SF == -1, the sRMS is not calculated.
+        - NW (int):          Number of windows. Default is 30.
+        - DW (int):          Window step size. Default is equal to NW.
+        - NM (int):          Whether to eliminate the result dimension? Default is yes (1).
+
+        Returns:
+        - proxy (np.ndarray): Proxy array.
+        - stats (dict): Dictionary containing various statistics:
+            - 'freqs': Frequencies analyzed.
+            - 'len_of_win': Length of each window.
+            - 'num_of_win': Number of windows.
+            - 'num_of_sld': Number of sliding windows.
+            - 'num_of_taper': Number of tapers.
+            - 'SF_of_sRMS': Scaling factor for sRMS.
+            - 'NW': Number of windows.
+            - 'DW': Window step size.
+            - 'FB': Frequency band analyzed.
+
+        Raises:
+        - Exception: If the length of the sliding window is greater than the length of the waveform.
+        """
+        obj=EDWav()
+        NT = int(NT)
+        FR = int(FR)
+        NW = int(NW)
+        if DW is None:
+            DW = NW
+        DW = int(DW)
+        NM = int(NM)
+
+        # Number of waveform sampling points
+        npts=len(wave)
+        wave = np.array(wave).reshape(-1, 1)
+
+        # Frequency range to be analyzed
+        if len(FB) != 2:
+            FB=[0, FS/2]
+
+        # Calculate the minimum length of the window according to the 'FR' and 'FB' entered
+        len_of_win=math.ceil(FR*FS/(FB[1]-FB[0])) 
+        if npts < len_of_win * NW:
+            raise ValueError("The length of the sliding window is greater than the length of the waveform, end the evaluation!")
+
+       # Frequencies that this window can analyze
+        freqs=np.arange(0, FS/2+FS/len_of_win, FS/len_of_win)
+        if freqs[-1]>FS/2:
+            freqs = freqs[:-1]
+
+        # Frequencies to be analyzed
+        fin = (freqs >= FB[0]) & (freqs <= FB[1])
+        obj.freqs=freqs[fin]
+        nfin = len(obj.freqs)
+
+        # Number of windows
+        num_of_win = npts // len_of_win
+
+        # Number of sliding windows
+        sindex = np.arange(0, num_of_win - NW + 1, DW)
+        num_of_sld = len(sindex)
+
+        # Length of window in final
+        len_of_win = int(np.floor(len_of_win + (npts - num_of_win * len_of_win) / num_of_win))
+        
+        # taper
+        tapers, weight = sinusoidal_tapers(len_of_win, NT)
+
+        # split waveform
+        wave_seg = np.zeros((len_of_win, num_of_win))
+        for i in range(num_of_win):
+            wave_seg[:, i] = wave[i * len_of_win:(i + 1) * len_of_win,0]
+
+        # obtain the spectrum of all windows under the action of different tapers
+        wave_fft = np.zeros((nfin, num_of_win, NT), dtype=complex)
+        for i in range(NT):
+            wave_tmp = np.fft.rfft(wave_seg*np.expand_dims(tapers[:,i], axis=1), axis=0) / len_of_win
+            wave_tmp[1:-1,:] =  wave_tmp[1:-1,:]*2
+            wave_fft[:, :, i] = wave_tmp[fin,:]
+
+        np.seterr(invalid='ignore')
+        
+        # the denominator of the three conditions
+        E_power = np.ones((nfin, NT))
+        EEpower = np.ones((nfin, nfin, NT))
+        if NM == 1:
+            for i in range(NT):
+                E_power[:,i] = np.median(np.abs(wave_fft[:, :, i]) ** 2, axis=1)
+                EEpower[:,:,i] = E_power[:,i] * E_power[:,i].reshape(-1, 1)
+
+        # begin sliding evaluation
+        proxy = np.zeros(npts)
+        stats = {'stack': np.zeros(npts)}
+        for k in range(num_of_sld):
+
+            index = [sindex[k], sindex[k] + NW - 1]
+            indexs = np.arange(index[0] * len_of_win, (index[1] + 1)* len_of_win)
+            
+            obj.A = 0
+            obj.B = 0
+            obj.C = 0
+
+            for i in range(NT):
+                wave_use = wave_fft[:, index[0]:index[1] + 1, i]
+
+                A = np.abs(np.mean(wave_use, axis=1)) ** 2 / E_power[:,i]
+                tempB = 0
+                tempC = 0
+                for j in range(NW):
+                    tempB += wave_use[:, j] * wave_use[:, j].reshape(-1, 1)
+                    tempC += wave_use[:, j] * np.conj(wave_use[:, j].reshape(-1, 1))
+                B = np.abs(tempB / NW) ** 2 / EEpower[:,:,i]
+                C = np.abs(tempC / NW) ** 2 / EEpower[:,:,i]
+
+                obj.A += weight[i] * A
+                obj.B += weight[i] * B
+                obj.C += weight[i] * C
+
+            # adjust the result
+            if np.any(np.isnan(obj.A)) or np.any(np.isnan(obj.B)) or np.any(np.isnan(obj.C)):
+                proxy[indexs] += 0
+                stats['stack'][indexs] += 0
+            else:
+                # Suppressing side lobe effect of sinusoidal tapers
+                # (Note that this is only an empirical operation. You can choose to comment on the following lines of code to reject this operation.)
+                Cw = np.ones((nfin, nfin))
+                CC = np.logspace(1, 0, NT + 1)
+                for kk in range(2, NT + 2):
+                    Cw[kk:, kk:] = CC[kk - 1]
+                Cw = Cw * Cw.T
+                obj.C = obj.C / Cw
+
+                # claculate the diffuseness proxies of the three conditions
+                obj = obj.sRMS(SF)
+
+                # save the result
+                proxy[indexs] += np.mean(obj.proxy)  # 忽略obj.C
+                stats['stack'][indexs] += 1
+
+        # return the result
+        proxy = proxy / stats['stack']
+
+        stats['freqs'] = obj.freqs
+        stats['len_of_win'] = len_of_win
+        stats['num_of_win'] = num_of_win
+        stats['num_of_sld'] = num_of_sld
+        stats['num_of_taper'] = NT
+        stats['SF_of_sRMS'] = SF
+        stats['NW'] = NW
+        stats['DW'] = DW
+        stats['FB'] = FB
+
+        np.seterr(invalid='warn')
+        
+        return proxy, stats
+
+           
     @jit
     def sRMS(self,SF):
         """ 
