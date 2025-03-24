@@ -10,7 +10,7 @@ EDWav = py.importlib.import_module('EDWav');
 load('Demo_data/Demo_data.mat');
 
 % evaluate this waveform
-obj=EDWav.EDWav.evaluate(wvfm,FS=Fs);
+obj=EDWav.EDWav.evaluate(wvfm,Fs);
 
 % Convert numpy.ndarray data format to double format
 obj1.A = double(obj.A);
