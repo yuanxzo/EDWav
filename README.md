@@ -12,6 +12,10 @@ In addition, the Python and Matlab versions of v1.1.0 have adopted more efficien
 
 Due to the flexibility of the Python language, we can easily call Python libraries on the Matlab platform like using its built-in functions. Therefore, to maintain consistency, we recommend using the **Python version**. In addition, updates to the Matlab version may be paused in the future.
 
+## Results showing the diffuseness evaluation performed on a single waveform segment.
+
+## Results showing the selection of diffuse waves from long-duration waveform data.
+
 # **Reference**
 > Yang, B., Meng, H., Gu, N., Liu, X., Chen, X., & Ben‐Zion, Y. (2024). A frequency domain methodology for quantitative evaluation of diffuse wavefield with applications to seismic imaging. Journal of Geophysical Research: Solid Earth, 129, e2024JB028895. https://doi.org/10.1029/2024JB028895
 >
