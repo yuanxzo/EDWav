@@ -22,3 +22,6 @@ obj1.proxy = double(obj.proxy);
 
 figure;
 imagesc(obj1.freqs,obj1.freqs,obj1.B);
+
+% Here, we demonstrate the use of the 'EDWav.EDWav.evaluate' function on the MATLAB platform. 
+% While the 'EDWav.EDWav.evaluate_sliding' function is not presented, it can be used in a similar manner.
