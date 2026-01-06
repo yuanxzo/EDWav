@@ -2,6 +2,8 @@
 Advanced Evaluation of the Diffuseness of the Seismic Wavefield
 
 # Introduction
+
+## Preface
 We uploaded the Maltab version of this method before June 2023. Now I have launched its Python version to meet more demands. 
 
 Compared to the Maltab version, the Python version has reduced many operations related to the waveform itself, but retained the core program for evaluating diffuseness, making its code appear more concise and beautiful. 
