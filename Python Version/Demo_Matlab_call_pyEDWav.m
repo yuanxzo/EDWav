@@ -9,6 +9,9 @@ EDWav = py.importlib.import_module('EDWav');
 % load a Matlab formatted test seismic waveform data
 load('Demo_data/Demo_data.mat');
 
+% If any code in EDWav.py has been modified, you can run this command to reload the module
+% EDWav = py.importlib.reload(EDWav); 
+
 % evaluate this waveform
 obj=EDWav.EDWav.evaluate(wvfm,Fs);
 
@@ -25,3 +28,4 @@ imagesc(obj1.freqs,obj1.freqs,obj1.B);
 
 % Here, we demonstrate the use of the 'EDWav.EDWav.evaluate' function on the MATLAB platform. 
 % While the 'EDWav.EDWav.evaluate_sliding' function is not presented, it can be used in a similar manner.
+
