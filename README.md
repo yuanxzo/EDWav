@@ -2,13 +2,9 @@
 Advanced Evaluation of the Diffuseness of the Seismic Wavefield
 
 # Introduction
-We uploaded the Maltab version of this method before June 2023. Now I have launched its Python version to meet more demands. 
+In this package, the Python and Matlab versions have exactly the same functionality, so you can choose according to your own usage habits.
 
-Compared to the Maltab version, the Python version has reduced many operations related to the waveform itself, but retained the core program for evaluating diffuseness, making its code appear more concise and beautiful. 
-
-In addition, the Python and Matlab versions of v1.1.0 have adopted more efficient algorithms, which are at least 3-20 times faster than previous versions.
-
-Due to the flexibility of the Python language, we can easily call Python libraries on the Matlab platform like using its built-in functions. Therefore, to maintain consistency, we recommend using the **Python version**. In addition, updates to the Matlab version may be paused in the future.
+The usage of the functions of these programs can refer to the demonstration code, but their specific working principles can be found in the following paper list.
 
 
 # **Reference**
