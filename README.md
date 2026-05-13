@@ -4,7 +4,7 @@ Advanced Evaluation of the Diffuseness of the Seismic Wavefield
 # Introduction
 In this package, the Python and Matlab versions have exactly the same functionality, so you can choose according to your own usage habits.
 
-The usage of the functions of these programs can refer to the demonstration code, but their specific working principles can be found in the following paper list.
+The usage of the functions of these programs can refer to the demonstration files, but their specific working principles can be found in the following papers.
 
 
 # **Reference**
