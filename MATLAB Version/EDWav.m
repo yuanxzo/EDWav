@@ -1,5 +1,5 @@
 classdef EDWav
-%ISEISM Evaluation of the Diffuseness of the Wavefield Method
+%EDWav Evaluation of the Diffuseness of the Wavefield Method
 %   Main functions: 
 %
 %   Note: 
