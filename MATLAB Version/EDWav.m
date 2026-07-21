@@ -148,7 +148,7 @@ methods (Static = true)
         arguments
             wave (:,1) {mustBeNumeric}  % 单道地震波形数据, size(wave) is [npts,1]
             FS  (1,1) {mustBeNumeric}=1 % 波形数据采样率 sampling rate
-            options.FB (1,2) {mustBeNumeric} =[] % 要评估的频率范围, 例如: [1, 100], 单位Hz;
+            options.FB (1,2) {mustBeNumeric} =[0 FS/2] % 要评估的频率范围, 例如: [1, 100], 单位Hz;
             options.FR (1,1) {mustBeNumeric} =100 % 结果的最小频率分辨率, 即FB被等分的最少个数 frequency resolution of conditions A, B and C
             options.NT (1,1) {mustBeNumeric} =1  % Multitaper的个数 umber of tapers
             options.SF (1,1) {mustBeNumeric} =0.05 % sRMS的一个参数.scale factor of the scale dependent RMS
