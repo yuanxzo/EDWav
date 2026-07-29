@@ -14,7 +14,7 @@ properties
     C=0         % 描述弥散程度结果的条件C
     proxy=[]    % 描述弥散程度结果的指标
     freqs=[]    % 弥散程度结果的依赖频率
-    stats=[]    % 与评估结果相关的一些信息
+    infos=[]    % 与评估结果相关的一些信息
 end
 
 methods (Static = true)
@@ -25,7 +25,7 @@ methods (Static = true)
             FS  (1,1) {mustBeNumeric}=1 % 波形数据采样率 sampling rate
             options.FB (1,2) {mustBeNumeric} =[0 FS/2] % 要评估的频率范围, 例如: [1, 100], 单位Hz;
             options.FR (1,1) {mustBeNumeric} =100 % 结果的最小频率分辨率, 即FB被等分的最少个数 frequency resolution of conditions A, B and C
-            options.NT (1,1) {mustBeNumeric} =1  % Multitaper的个数 umber of tapers
+            options.NT (1,1) {mustBeNumeric} =1  % Multitaper的个数 number of tapers
             options.SF (1,1) {mustBeNumeric} =0.05 % sRMS的一个参数.scale factor of the scale dependent RMS
         end
         FB = options.FB;
@@ -134,17 +134,18 @@ methods (Static = true)
         end
 
         % 保留一些与结果相关的信息
-        obj.stats.len_of_win = len_of_win;
-        obj.stats.num_of_win = num_of_win;
-        obj.stats.num_of_taper = NT;
-        obj.stats.SF_of_sRMS = SF;
-        obj.stats.FB = FB;
+        obj.infos.len_of_win = len_of_win;
+        obj.infos.num_of_win = num_of_win;
+        obj.infos.num_of_taper = NT;
+        obj.infos.SF_of_sRMS = SF;
+        obj.infos.FB = FB;
+        obj.infos.SE = [1 len_of_win*num_of_win];
 
     end
 
-    function [proxy,stats]=evaluate_sliding(wave,FS,options)
+    function [proxy,infos]=evaluate_sliding(wave,FS,options)
         % 函数功能介绍: 以滑动窗评估连续地震波形（通常为小时级别或更久的波形）的弥散程度
-        % 输出参数介绍: proxy: 一个弥散度随时间变化的值; stats: 与计算相关的一些信息量
+        % 输出参数介绍: proxy: 一个弥散度随时间变化的值; infos: 与计算相关的一些信息量
         arguments
             wave (:,1) {mustBeNumeric}  % 单道地震波形数据, size(wave) is [npts,1]
             FS  (1,1) {mustBeNumeric}=1 % 波形数据采样率 sampling rate
@@ -152,9 +153,8 @@ methods (Static = true)
             options.FR (1,1) {mustBeNumeric} =100 % 结果的最小频率分辨率, 即FB被等分的最少个数 frequency resolution of conditions A, B and C
             options.NT (1,1) {mustBeNumeric} =1  % Multitaper的个数 umber of tapers
             options.SF (1,1) {mustBeNumeric} =0.05 % sRMS的一个参数.scale factor of the scale dependent RMS
-            options.NW (1,1) {mustBeNumeric} =30 % 滑动窗所包含的小窗的最少个数, 建议该值最小为30, 通常取值在[30,60]之间.
+            options.NW (1,1) {mustBeNumeric} =30 % 滑动窗所包含的小窗个数
             options.DW (1,1) {mustBeNumeric} =30  % 滑动窗的间隔小窗数
-            options.PN ='' % progressBar's name 
         end
         FB = options.FB;
         FR = options.FR;
@@ -235,14 +235,9 @@ methods (Static = true)
         end
 
         proxy=zeros(num_of_win*len_of_win,1);
-        stats.stack=zeros(num_of_win*len_of_win,1);
+        infos.stack=zeros(num_of_win*len_of_win,1);
 
-        % 开始滑动评估
-        if strcmp(options.PN,'')
-            NN=-1;
-        else
-            NN=num_of_sld;
-        end
+        
 
         % 分母
         E_power = cell(NT,1);
@@ -252,7 +247,7 @@ methods (Static = true)
             EEpower{i} = E_power{i}.*E_power{i}';
         end
 
-        pp=progressBar(NN,'pname',options.PN);
+        % 开始滑动评估
         for k = 1 : num_of_sld
             index=[sindex(k) sindex(k)+NW-1];
             indexs = (index(1)-1)*len_of_win+1 : index(2)*len_of_win;
@@ -280,7 +275,7 @@ methods (Static = true)
             % 判断结果中是否有NaN, 有的话即将该段结果置为1
             if any(isnan(obj.A)) || any(isnan(obj.B(:))) || any(isnan(obj.C(:)))
                 proxy(indexs, 1)=1;
-                stats.stack(indexs, 1)  =stats.stack(indexs, 1)+0;
+                infos.stack(indexs, 1)  =infos.stack(indexs, 1)+0;
             else
                 % 压制条件C的旁瓣
                 Cw=ones(nfin,nfin);CC=logspace(1,0,NT+1);
@@ -295,26 +290,24 @@ methods (Static = true)
 
                 % 记录结果
                 proxy(indexs, 1)=proxy(indexs, 1)+mean(obj.proxy);  % 忽略obj.C
-                stats.stack(indexs, 1)=stats.stack(indexs, 1)+1;
+                infos.stack(indexs, 1)=infos.stack(indexs, 1)+1;
             end
 
-            pp.progress;
-        end
-        pp.stop;            
+        end       
 
         % 保留一些与结果相关的信息
-        proxy=proxy./stats.stack;
+        proxy=proxy./infos.stack;
         
-        stats.freqs = obj.freqs;
-        stats.len_of_win = len_of_win;
-        stats.num_of_win = num_of_win;
-        stats.num_of_sld = num_of_sld;
-        stats.num_of_taper = NT;
-        stats.SF_of_sRMS = SF;
-        stats.NW = NW;
-        stats.DW = DW;
-        stats.FB = FB;
-
+        infos.freqs = obj.freqs;
+        infos.len_of_win = len_of_win;
+        infos.num_of_win = num_of_win;
+        infos.num_of_sld = num_of_sld;
+        infos.num_of_taper = NT;
+        infos.SF_of_sRMS = SF;
+        infos.NW = NW;
+        infos.DW = DW;
+        infos.FB = FB;
+        infos.SE = [1 num_of_win*len_of_win];
     end
 end
 
