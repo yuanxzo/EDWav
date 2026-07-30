@@ -1,12 +1,8 @@
 classdef EDWav
 %EDWav Evaluation of the Diffuseness of the Wavefield Method
-%   Main functions: 
-%
-%   Note: 
 %
 % Latest date: 2024-03-22
-%
-% Copyright (C) 2019 <Bo Yang. Email:seism.yang@foxmail.com>
+% Copyright (C) 2024 <Bo Yang. Email:seism.yang@foxmail.com>
 
 properties
     A=0         % 描述弥散程度结果的条件A
